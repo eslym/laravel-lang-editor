@@ -22,9 +22,9 @@
       "providers": [
         "Eslym\\LangEditor\\Providers\\LangEditorServiceProvider"
       ],
-      "aliases": [
-        "Eslym\\LangEditor\\Facades\\LangEditor"
-      ]
+      "aliases": {
+        "LangEditor": "Eslym\\LangEditor\\Facades\\LangEditor"
+      }
     }
   }
 }

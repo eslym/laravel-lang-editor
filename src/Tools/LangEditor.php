@@ -157,7 +157,7 @@ class LangEditor implements LangEditorContract
     public function routes(Router $router = null){
         $router = $router ?? app('router');
         $router->name('lang-editor::')
-            ->namespace("Eslym\\LangEditor\\Controllers")
+            ->namespace("\\Eslym\\LangEditor\\Controllers")
             ->group(function (Router $router){
                 $router->get('langs', 'LangEditorController@index')
                     ->name('index');

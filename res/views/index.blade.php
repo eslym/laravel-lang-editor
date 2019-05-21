@@ -24,7 +24,7 @@
                         render: (data, type, record, cell)=>{
                             let div = $('<div>');
                             data = div.html(data).html();
-                            div.html('<div class="ui fluid input"><input onchange="update(this);" placeholder="Not Translated"></div>');
+                            div.html('<div class="ui fluid small input"><input onchange="update(this);" placeholder="Not Translated"></div>');
                             div.find('input')
                                 .attr('value', data)
                                 .attr('data-key', record.key)
@@ -74,7 +74,7 @@
         $('#colSelect').dropdown();
     </script>
 </div>
-<table class="ui striped compact small celled selectable fixed table" id="langs" style="width: 100%">
+<table class="ui striped compact small selectable fixed table" id="langs" style="width: 100%">
     <thead>
     <tr>
         <th class="two wide center aligned">Key</th>

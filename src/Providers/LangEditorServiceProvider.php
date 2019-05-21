@@ -26,7 +26,7 @@ class LangEditorServiceProvider extends ServiceProvider
         );
 
         $this->loadViewsFrom(
-            __DIR__.'../../res/views',
+            realpath(__DIR__.'/../../res/views'),
             'lang-editor'
         );
     }
