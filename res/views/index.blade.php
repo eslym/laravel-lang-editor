@@ -11,33 +11,63 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js" integrity="sha256-t8GepnyPmw9t+foMh3mKNvcorqNHamSKtKRxxpUEgFI=" crossorigin="anonymous"></script>
     <script>
         @php($columns = array_map(function($val){ return ['data'=>$val];}, $languages))
-        @php(array_unshift($columns, ['data'=> "key"]))
-        @php($range = range(1, count($columns) - 1))
+        @php(array_unshift($columns, ['data'=>null], ['data'=> "key"]))
+        @php($range = range(2, count($columns) - 1))
         let columns = @json($columns);
         $.fn.dataTable.ext.errMode = 'none';
         $(document).ready(()=>{
-            window.langTable = $('#langs').dataTable({
-                ajax: @json(route('lang-editor::trans')),
-                columns: columns,
-                columnDefs: [
-                    {
-                        render: (data, type, record, cell)=>{
-                            let div = $('<div>');
-                            data = div.html(data).html();
-                            div.html('<div class="ui fluid small input"><input onchange="update(this);" placeholder="Not Translated"></div>');
-                            div.find('input')
-                                .attr('value', data)
-                                .attr('data-key', record.key)
-                                .attr('data-lang', columns[cell.col].data)
-                                .attr('data-row', cell.row)
-                                .attr('data-col', cell.col);
-                            return div.html();
+            window.langTable = $('table#langs')
+                .on('click', 'td:nth-child(2)', function(){
+                    $(this).siblings('td:first-child')
+                        .find('.checkbox')
+                        .checkbox('toggle');
+                })
+                .dataTable({
+                    ajax: @json(route('lang-editor::trans')),
+                    columns: columns,
+                    columnDefs: [
+                        {
+                            render: (data, type, record, cell) => {
+                                let div = $('<div>');
+                                div.html('<div class="ui fitted checkbox"><input type="checkbox"><label></label></div>');
+                                div.children('div')
+                                    .attr('id', 'cb_'+record.key)
+                                    .attr('data-key', record.key)
+                                    .attr('data-row', cell.row)
+                                    .find('label')
+                                    .attr('for', 'cb_'+record.key);
+                                return div.html();
+                            },
+                            orderable: false,
+                            className: 'collapsing',
+                            targets: 0
                         },
-                        targets: @json($range)
-                    }
-                ]
-            }).api();
+                        {
+                            render: (data, type, record, cell)=>{
+                                let div = $('<div>');
+                                data = div.html(data).html();
+                                div.html('<div class="ui fluid input"><input placeholder="Not Translated"></div>');
+                                div.find('input')
+                                    .attr('value', data)
+                                    .attr('data-key', record.key)
+                                    .attr('data-lang', columns[cell.col].data)
+                                    .attr('data-row', cell.row)
+                                    .attr('data-col', cell.col);
+                                return div.html();
+                            },
+                            targets: @json($range)
+                        },
+                        {
+                            className: 'two wide',
+                            targets: 1
+                        }
+                    ],
+                    order: [[ 1, 'asc' ]]
+                }).api();
             showCol(document.getElementById('colSelect'));
+            $('.modal').modal({
+                approve: '.approve'
+            }).modal('attach events', '#btnInsert');
         });
         function update(element){
             let el = $(element);
@@ -51,9 +81,15 @@
         }
         function showCol(cols){
             let show = $(cols).val();
-            for (i = 1; i < columns.length; i++){
+            for (i = 2; i < columns.length; i++){
                 langTable.column(i).visible(show.indexOf(i.toString()) !== -1);
             }
+        }
+        function toggleSelection(){
+            $('.checkbox[data-key]').checkbox('toggle');
+        }
+        function deleteRecord(){
+
         }
     </script>
     <style>
@@ -67,17 +103,32 @@
     <label for="colSelect">Show Languages: </label>
     <select id="colSelect" class="ui search dropdown" multiple onchange="showCol(this)">
         @foreach($languages as $key => $lang)
-            <option value="{{$key + 1}}" selected>{{$lang}}</option>
+            <option value="{{$key + 2}}" selected>{{$lang}}</option>
         @endforeach
     </select>
     <script>
         $('#colSelect').dropdown();
     </script>
 </div>
-<table class="ui striped compact small selectable fixed table" id="langs" style="width: 100%">
+<div class="ui segment">
+    <button  class="ui icon green button" id="btnInsert">
+        <i class="plus icon"></i>
+        Insert
+    </button>
+    <button class="ui icon blue button" onclick="toggleSelection()">
+        <i class="check icon"></i>
+        Toggle Selections
+    </button>
+    <button class="ui icon red button" onclick="deleteRecord()">
+        <i class="trash icon"></i>
+        Delete
+    </button>
+</div>
+<table class="ui striped compact small selectable definition fixed table" id="langs" style="width: 100%">
     <thead>
     <tr>
-        <th class="two wide center aligned">Key</th>
+        <th style="width: 20px;"></th>
+        <th class="center aligned">Key</th>
         @foreach($languages as $lang)
             <th class="center aligned">{{$lang}}</th>
         @endforeach
@@ -85,21 +136,28 @@
     </thead>
     <tfoot>
     <tr>
-        <th class="two wide center aligned">Key</th>
+        <th></th>
+        <th class="center aligned">Key</th>
         @foreach($languages as $lang)
             <th class="center aligned">{{$lang}}</th>
         @endforeach
     </tr>
     </tfoot>
 </table>
-<div class="ui popup">
+<div class="ui mini modal">
+    <div class="header">Insert New Translation</div>
     <div class="content">
         <div class="ui form">
-            <div class="ui icon input">
-                <textarea></textarea>
-                <i class="inverted circular save link icon"></i>
+            <div class="ui left labeled fluid input">
+                <label class="ui label" for="insert-key">
+                    Key
+                </label>
+                <input id="insert-key" type="text" placeholder="package::group.key" >
             </div>
         </div>
+    </div>
+    <div class="actions">
+        <button class="ui green approve button">Insert</button>
     </div>
 </div>
 </body>

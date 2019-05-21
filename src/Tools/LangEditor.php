@@ -106,6 +106,14 @@ class LangEditor implements LangEditorContract
         $path = isset($namespace) ?
             $this->langPath . "/vendor/$namespace/$lang/$group.php" :
             $this->langPath . "/$lang/$group.php";
+        if ((
+                (!isset($data['group'])) ||
+                (is_array($data[$group]) && empty($data[$group]))
+            ) && File::exists($path)
+        ) {
+            File::delete($path);
+            return;
+        }
         if(!File::exists(File::dirname($path))){
             File::makeDirectory(File::dirname($path), 0755, true);
         }
@@ -123,6 +131,7 @@ class LangEditor implements LangEditorContract
                         $records[$key]['key'] = $key;
                     }
                     $records[$key][$lang] = $trans;
+                    continue;
                 }
                 foreach (Arr::dot($trans) as $key => $value) {
                     if (empty($value)) {
@@ -138,20 +147,23 @@ class LangEditor implements LangEditorContract
         }
     }
 
-    public function export(array $array, string $indent = '')
+    public function export($var, string $indent = '')
     {
-        if (empty($array)) {
-            return '[]';
+        if(is_array($var)){
+            if (empty($var)) {
+                return '[]';
+            }
+            $result = "[\n";
+            foreach ($var as $key => $value) {
+                if(empty($value)) continue;
+                $key = var_export($key, true);
+                $value = $this->export($value, "$indent    ");
+                $result .= "$indent    $key => $value,\n";
+            }
+            return $result . "$indent]";
+        } else {
+            return var_export($var, true);
         }
-        $result = "[\n";
-        foreach ($array as $key => $value) {
-            $key = var_export($key, true);
-            $value = is_array($value) ?
-                $this->export($value, "$indent    ") :
-                var_export($value, true);
-            $result .= "$indent    $key => $value,\n";
-        }
-        return $result . "$indent]";
     }
 
     public function routes(Router $router = null){
