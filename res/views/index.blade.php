@@ -22,6 +22,15 @@
                         .find('.checkbox')
                         .checkbox('toggle');
                 })
+                .on('dblclick', 'div.input', function(){
+                    let i = $(this).find('input');
+                    let m = $('#editModal')
+                        .data('key', i.data('key'));
+                    m.find('.header').text(i.data('key'));
+                    m.find('label').text(i.data('lang'));
+                    m.find('textarea').val(i.val());
+                    m.modal('show');
+                })
                 .dataTable({
                     ajax: @json(route('lang-editor::trans')),
                     columns: columns,
@@ -65,9 +74,18 @@
                     order: [[ 1, 'asc' ]]
                 }).api();
             showCol(document.getElementById('colSelect'));
-            $('.modal').modal({
-                approve: '.approve'
-            }).modal('attach events', '#btnInsert');
+            $('#insertModal')
+                .modal({
+                    approve: '.approve'
+                })
+                .modal('attach events', '#btnInsert');
+            $('#editModal')
+                .modal({
+                    approve: '.approve',
+                    onApprove: function(){
+                        console.log(this);
+                    }
+                });
         });
         function update(element){
             let el = $(element);
@@ -95,6 +113,10 @@
     <style>
         body{
             padding: 20px;
+        }
+        textarea{
+            overflow: auto;
+            white-space: pre;
         }
     </style>
 </head>
@@ -144,7 +166,7 @@
     </tr>
     </tfoot>
 </table>
-<div class="ui mini modal">
+<div class="ui mini modal" id="insertModal">
     <div class="header">Insert New Translation</div>
     <div class="content">
         <div class="ui form">
@@ -158,6 +180,21 @@
     </div>
     <div class="actions">
         <button class="ui green approve button">Insert</button>
+    </div>
+</div>
+<div class="ui small modal" id="editModal">
+    <div class="header"></div>
+    <div class="content">
+        <div class="ui form">
+            <div class="fluid field">
+                <label for="text-trans">
+                </label>
+                <textarea id="text-trans" placeholder="Not Translated"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <button class="ui green approve button">OK</button>
     </div>
 </div>
 </body>
