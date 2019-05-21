@@ -55,7 +55,7 @@
                             render: (data, type, record, cell)=>{
                                 let div = $('<div>');
                                 data = div.html(data).html();
-                                div.html('<div class="ui fluid input"><input placeholder="Not Translated"></div>');
+                                div.html('<div class="ui fluid input"><input onchange="update(this)" placeholder="Not Translated"></div>');
                                 div.find('input')
                                     .attr('value', data)
                                     .attr('data-key', record.key)
