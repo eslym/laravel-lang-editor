@@ -1,0 +1,30 @@
+{
+  "name": "eslym/laravel-lang-editor",
+  "description": "Simple Languages Editor",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "0nepeop1e",
+      "email": "engshun.lim@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "laravel/framework": ">=5.0 <6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Eslym\\LangEditor\\": "src/"
+    }
+  },
+  "extra":{
+    "laravel": {
+      "providers": [
+        "Eslym\\LangEditor\\Providers\\LangEditorServiceProvider"
+      ],
+      "aliases": [
+        "Eslym\\LangEditor\\Facades\\LangEditor"
+      ]
+    }
+  }
+}
