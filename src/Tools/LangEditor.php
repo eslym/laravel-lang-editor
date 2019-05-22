@@ -8,7 +8,6 @@ use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 class LangEditor implements LangEditorContract
@@ -85,12 +84,6 @@ class LangEditor implements LangEditorContract
 
     public function setTranslation(string $key, string $lang, ?string $value)
     {
-        $this->allTranslations();
-        if(empty($value)){
-            unset($this->trans[$key][$lang]);
-        } else {
-            $this->trans[$key][$lang] = $value;
-        }
         $namespace = null;
         if (Str::contains($key, '::')) {
             [$namespace, $key] = explode('::', $key, 2);
@@ -107,7 +100,7 @@ class LangEditor implements LangEditorContract
             $this->langPath . "/vendor/$namespace/$lang/$group.php" :
             $this->langPath . "/$lang/$group.php";
         if ((
-                (!isset($data['group'])) ||
+                (!isset($data[$group])) ||
                 (is_array($data[$group]) && empty($data[$group]))
             ) && File::exists($path)
         ) {
@@ -118,6 +111,40 @@ class LangEditor implements LangEditorContract
             File::makeDirectory(File::dirname($path), 0755, true);
         }
         File::put($path, "<?php\n\nreturn ".$this->export($data[$group]).";");
+    }
+
+    public function deleteTranslations(array $keys){
+        $data = [];
+        foreach ($this->allLanguages() as $lang){
+            foreach ($keys as $key){
+                $namespace = null;
+                if (Str::contains($key, '::')) {
+                    [$namespace, $key] = explode('::', $key, 2);
+                }
+                $group = Str::before($key, '.');
+                if(!isset($data[$lang][$group])){
+                    $data[$lang][$group] = $this->transLoader->load($lang, $group, $namespace);
+                }
+                Arr::forget($data[$lang], $key);
+            }
+            foreach ($data[$lang] as $group => $trans){
+                $path = isset($namespace) ?
+                    $this->langPath . "/vendor/$namespace/$lang/$group.php" :
+                    $this->langPath . "/$lang/$group.php";
+                if ((
+                        (!isset($trans[$group])) ||
+                        (is_array($trans[$group]) && empty($trans[$group]))
+                    ) && File::exists($path)
+                ) {
+                    File::delete($path);
+                    return;
+                }
+                if(!File::exists(File::dirname($path))){
+                    File::makeDirectory(File::dirname($path), 0755, true);
+                }
+                File::put($path, "<?php\n\nreturn ".$this->export($trans[$group]).";");
+            }
+        }
     }
 
     public function load(&$records, $groups, $namespace = null)

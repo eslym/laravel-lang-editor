@@ -14,6 +14,7 @@
         @php(array_unshift($columns, ['data'=>null], ['data'=> "key"]))
         @php($range = range(2, count($columns) - 1))
         let columns = @json($columns);
+        let csrf_token = @json(csrf_token());
         $.fn.dataTable.ext.errMode = 'none';
         $(document).ready(()=>{
             window.langTable = $('table#langs')
@@ -25,10 +26,11 @@
                 .on('dblclick', 'div.input', function(){
                     let i = $(this).find('input');
                     let m = $('#editModal')
-                        .data('key', i.data('key'));
                     m.find('.header').text(i.data('key'));
                     m.find('label').text(i.data('lang'));
-                    m.find('textarea').val(i.val());
+                    m.find('textarea').val(i.val())
+                        .data('key', i.data('key'))
+                        .data('lang', i.data('lang'));
                     m.modal('show');
                 })
                 .dataTable({
@@ -79,20 +81,14 @@
                     approve: '.approve'
                 })
                 .modal('attach events', '#btnInsert');
-            $('#editModal')
-                .modal({
-                    approve: '.approve',
-                    onApprove: function(){
-                        console.log(this);
-                    }
-                });
         });
         function update(element){
             let el = $(element);
             langTable.cell(el.attr('data-row'), el.attr('data-col')).data(el.val());
             let data = {
-                key: el.attr('data-key'),
-                lang: el.attr('data-lang'),
+                _token: csrf_token,
+                key: el.data('key'),
+                lang: el.data('lang'),
                 value: el.val(),
             };
             $.post(@json(route('lang-editor::update')), data);
@@ -108,6 +104,11 @@
         }
         function deleteRecord(){
 
+        }
+        function textChange(el){
+            console.log(el);
+            let sel = 'input[data-key="'+$(el).data('key')+'"][data-lang="'+$(el).data('lang')+'"]';
+            update($(sel).val($(el).val()));
         }
     </script>
     <style>
@@ -189,12 +190,12 @@
             <div class="fluid field">
                 <label for="text-trans">
                 </label>
-                <textarea id="text-trans" placeholder="Not Translated"></textarea>
+                <textarea id="text-trans" placeholder="Not Translated" onchange="textChange(this)"></textarea>
             </div>
         </div>
     </div>
     <div class="actions">
-        <button class="ui green approve button">OK</button>
+        <button class="ui red approve button">Close</button>
     </div>
 </div>
 </body>

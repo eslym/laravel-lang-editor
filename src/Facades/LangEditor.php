@@ -15,6 +15,7 @@ use \Eslym\LangEditor\Contracts\LangEditor as LangEditorContract;
  * @method static string[] allLanguages()
  * @method static array allTranslations()
  * @method static void setTranslation(string $key, string $lang, string $value)
+ * @method static void deleteTranslation(string[] $keys)
  * @method static void routes(Router $router = null)
  */
 class LangEditor extends Facade

@@ -5,7 +5,6 @@ namespace Eslym\LangEditor\Controllers;
 use Eslym\LangEditor\Facades\LangEditor;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 
 class LangEditorController extends BaseController
@@ -26,6 +25,16 @@ class LangEditorController extends BaseController
             'value' => 'nullable|string',
         ])->validate();
         LangEditor::setTranslation($data['key'], $data['lang'], $data['value']);
+        return response()->json('success');
+    }
+
+    public function delete(Request $request){
+        $data = $request->only(['keys']);
+        Validator::make($data, [
+            'keys' => 'requried|array',
+            'keys.*' => 'required|regex:/^(?:[0-9a-z\-_]+::)?(?:[0-9a-z\-_]+(?:\.))*[0-9a-z\-_]+/i',
+        ])->validate();
+        LangEditor::deleteTranslation($data['keys']);
         return response()->json('success');
     }
 }

@@ -14,5 +14,7 @@ interface LangEditor
 
     public function setTranslation(string $key, string $lang, ?string $value);
 
+    public function deleteTranslations(array $keys);
+
     public function routes(Router $router = null);
 }
