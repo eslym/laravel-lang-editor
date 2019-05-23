@@ -75,17 +75,15 @@
                     ],
                     order: [[ 1, 'asc' ]]
                 }).api();
-            langTable.columns().every( function () {
-                var that = this;
-
-                $( 'input', this.footer() ).on( 'keyup change', function () {
-                    if ( that.search() !== this.value ) {
-                        that
-                            .search( this.value )
+            langTable.columns().every(function () {
+                let col = this;
+                $('input', this.footer()).on('keyup change', function () {
+                    if (col.search() !== this.value) {
+                        col.search(this.value)
                             .draw();
                     }
-                } );
-            } );
+                });
+            });
             showCol(document.getElementById('colSelect'));
             $('#insertModal')
                 .modal({
