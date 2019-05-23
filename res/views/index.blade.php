@@ -119,7 +119,6 @@
                     keys: keys
                 };
                 $.post(@json(route('lang-editor::delete')), data);
-                let i = 0;
                 $('input[type=checkbox]:checked').each(function(){
                     langTable.row($(this).closest('tr')).remove();
                 });
