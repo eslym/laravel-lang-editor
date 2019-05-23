@@ -47,5 +47,6 @@
     <orderEntry type="library" name="jquery.dataTables" level="application" />
     <orderEntry type="library" name="dataTables.semanticui" level="application" />
     <orderEntry type="library" name="semantic" level="application" />
+    <orderEntry type="library" name="jquery-ui" level="application" />
   </component>
 </module>

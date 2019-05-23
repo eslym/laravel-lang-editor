@@ -23,8 +23,8 @@
                         .find('.checkbox')
                         .checkbox('toggle');
                 })
-                .on('dblclick', 'div.input', function(){
-                    let i = $(this).find('input');
+                .on('dblclick', 'textarea', function(){
+                    let i = $(this);
                     let m = $('#editModal')
                     m.find('.header').text(i.data('key'));
                     m.find('label').text(i.data('lang'));
@@ -41,11 +41,11 @@
                             render: (data, type, record, cell) => {
                                 let div = $('<div>');
                                 div.html('<div class="ui fitted checkbox"><input type="checkbox"><label></label></div>');
-                                div.children('div')
+                                div.find('input')
                                     .attr('id', 'cb_'+record.key)
                                     .attr('data-key', record.key)
                                     .attr('data-row', cell.row)
-                                    .find('label')
+                                    .siblings('label')
                                     .attr('for', 'cb_'+record.key);
                                 return div.html();
                             },
@@ -57,9 +57,9 @@
                             render: (data, type, record, cell)=>{
                                 let div = $('<div>');
                                 data = div.html(data).html();
-                                div.html('<div class="ui fluid input"><input onchange="update(this)" placeholder="Not Translated"></div>');
-                                div.find('input')
-                                    .attr('value', data)
+                                div.html('<textarea class="cell" rows="0" onchange="update(this)" placeholder="Not Translated"></textarea>');
+                                div.find('textarea')
+                                    .text(data)
                                     .attr('data-key', record.key)
                                     .attr('data-lang', columns[cell.col].data)
                                     .attr('data-row', cell.row)
@@ -75,6 +75,17 @@
                     ],
                     order: [[ 1, 'asc' ]]
                 }).api();
+            langTable.columns().every( function () {
+                var that = this;
+
+                $( 'input', this.footer() ).on( 'keyup change', function () {
+                    if ( that.search() !== this.value ) {
+                        that
+                            .search( this.value )
+                            .draw();
+                    }
+                } );
+            } );
             showCol(document.getElementById('colSelect'));
             $('#insertModal')
                 .modal({
@@ -99,15 +110,26 @@
                 langTable.column(i).visible(show.indexOf(i.toString()) !== -1);
             }
         }
-        function toggleSelection(){
-            $('.checkbox[data-key]').checkbox('toggle');
-        }
         function deleteRecord(){
-
+            let keys = $('input[type=checkbox]:checked').map(function(){
+                console.log(this);
+                return $(this).data('key');
+            }).toArray();
+            if(keys.length > 0){
+                let data = {
+                    _token: csrf_token,
+                    keys: keys
+                };
+                $.post(@json(route('lang-editor::delete')), data);
+                let i = 0;
+                $('input[type=checkbox]:checked').each(function(){
+                    langTable.row($(this).closest('tr')).remove();
+                });
+                langTable.draw();
+            }
         }
         function textChange(el){
-            console.log(el);
-            let sel = 'input[data-key="'+$(el).data('key')+'"][data-lang="'+$(el).data('lang')+'"]';
+            let sel = 'textarea[data-key="'+$(el).data('key')+'"][data-lang="'+$(el).data('lang')+'"]';
             update($(sel).val($(el).val()));
         }
     </script>
@@ -118,6 +140,15 @@
         textarea{
             overflow: auto;
             white-space: pre;
+        }
+        textarea.cell{
+            resize: none;
+            line-height: 1.25em;
+            height: 1.25em;
+            width: 100%;
+            border: none;
+            background: none;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -138,16 +169,20 @@
         <i class="plus icon"></i>
         Insert
     </button>
-    <button class="ui icon blue button" onclick="toggleSelection()">
-        <i class="check icon"></i>
+    <button class="ui icon blue button" onclick="$('.checkbox').checkbox('toggle');">
+        <i class="check square outline icon"></i>
         Toggle Selections
+    </button>
+    <button class="ui icon purple button" onclick="$('.checkbox').checkbox('uncheck');">
+        <i class="square outline icon"></i>
+        Clear Selections
     </button>
     <button class="ui icon red button" onclick="deleteRecord()">
         <i class="trash icon"></i>
         Delete
     </button>
 </div>
-<table class="ui striped compact small selectable definition fixed table" id="langs" style="width: 100%">
+<table class="ui striped compact small selectable definition fixed celled table" id="langs" style="width: 100%">
     <thead>
     <tr>
         <th style="width: 20px;"></th>
@@ -160,9 +195,9 @@
     <tfoot>
     <tr>
         <th></th>
-        <th class="center aligned">Key</th>
+        <th><div class="ui fluid input"><input placeholder="Key"/></div></th>
         @foreach($languages as $lang)
-            <th class="center aligned">{{$lang}}</th>
+            <th><div class="ui fluid input"><input placeholder="{{$lang}}"/></div></th>
         @endforeach
     </tr>
     </tfoot>
@@ -180,7 +215,7 @@
         </div>
     </div>
     <div class="actions">
-        <button class="ui green approve button">Insert</button>
+        <button class="ui green approve button" onclick="langTable.row.add({key:$('#insert-key').val()}).draw()">Insert</button>
     </div>
 </div>
 <div class="ui small modal" id="editModal">

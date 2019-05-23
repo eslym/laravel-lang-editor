@@ -142,7 +142,11 @@ class LangEditor implements LangEditorContract
                 if(!File::exists(File::dirname($path))){
                     File::makeDirectory(File::dirname($path), 0755, true);
                 }
-                File::put($path, "<?php\n\nreturn ".$this->export($trans[$group]).";");
+                if(isset($trans[$group])){
+                    File::put($path, "<?php\n\nreturn ".$this->export($trans[$group]).";");
+                } else if (File::exists($path)) {
+                    File::delete($path);
+                }
             }
         }
     }
@@ -204,6 +208,8 @@ class LangEditor implements LangEditorContract
                     ->name('trans');
                 $router->post('langs.json', 'LangEditorController@update')
                     ->name('update');
+                $router->post('langs.json/delete', 'LangEditorController@delete')
+                    ->name('delete');
             });
     }
 }

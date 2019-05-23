@@ -31,10 +31,10 @@ class LangEditorController extends BaseController
     public function delete(Request $request){
         $data = $request->only(['keys']);
         Validator::make($data, [
-            'keys' => 'requried|array',
+            'keys' => 'required|array',
             'keys.*' => 'required|regex:/^(?:[0-9a-z\-_]+::)?(?:[0-9a-z\-_]+(?:\.))*[0-9a-z\-_]+/i',
         ])->validate();
-        LangEditor::deleteTranslation($data['keys']);
+        LangEditor::deleteTranslations($data['keys']);
         return response()->json('success');
     }
 }
